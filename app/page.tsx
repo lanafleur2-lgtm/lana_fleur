@@ -1,14 +1,15 @@
-// app/page.tsx
+cat > app/page.tsx << 'EOF'
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import CartDrawer from '../components/CartDrawer'
+import { CartProvider, useCart } from '../contexts/CartContext'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// ⚠️ بدل هاد الرقم برقم الواتساب ديالك (صيغة دولية بلا + وبلا صفر البداية)
 const WHATSAPP_NUMBER = '212610171350'
 
 interface Product {
@@ -53,6 +54,10 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     'contact.addr': 'Casablanca, Maroc', 'contact.wa': 'WhatsApp disponible 7j/7', 'contact.hours': 'Lun–Sam : 9h00 – 20h00',
     'form.name': 'Votre nom', 'form.occasion': 'La occasion', 'form.msg': 'Décrivez votre vision', 'form.send': 'Envoyer via WhatsApp 🌸',
     'footer.copy': '© 2026 LanaFleur.com — Tous droits réservés',
+    'cart.title': 'Votre panier', 'cart.empty': 'Votre panier est vide', 'cart.remove': 'Retirer',
+    'cart.total': 'Total', 'cart.checkout': 'Valider la commande', 'cart.checkoutDesc': "Remplissez vos informations, nous enverrons la commande via WhatsApp.",
+    'cart.address': 'Adresse de livraison', 'cart.phone': 'Numéro de téléphone', 'cart.sendOrder': 'Envoyer la commande',
+    'cart.back': 'Retour', 'cart.newOrder': 'Nouvelle commande', 'cart.addToCart': 'Ajouter au panier',
   },
   ar: {
     'nav.services': 'خدماتنا', 'nav.collections': 'المجموعات', 'nav.occasions': 'المناسبات',
@@ -82,6 +87,10 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     'contact.addr': 'المغرب', 'contact.wa': 'واتساب متاح 7 أيام/7', 'contact.hours': 'الاثنين–السبت: 9:00–20:00',
     'form.name': 'اسمك', 'form.occasion': 'المناسبة', 'form.msg': 'صف ما تريد', 'form.send': 'إرسال عبر واتساب 🌸',
     'footer.copy': '© 2026 LanaFleur.com — جميع الحقوق محفوظة',
+    'cart.title': 'سلة التسوق', 'cart.empty': 'السلة فارغة', 'cart.remove': 'حذف',
+    'cart.total': 'المجموع', 'cart.checkout': 'إتمام الطلب', 'cart.checkoutDesc': 'عبي معلوماتك ونبعتو الطلب عبر واتساب.',
+    'cart.address': 'عنوان التوصيل', 'cart.phone': 'رقم الهاتف', 'cart.sendOrder': 'إرسال الطلب',
+    'cart.back': 'رجوع', 'cart.newOrder': 'طلب جديد', 'cart.addToCart': 'أضف للسلة',
   },
   en: {
     'nav.services': 'Services', 'nav.collections': 'Collections', 'nav.occasions': 'Occasions',
@@ -111,6 +120,10 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     'contact.addr': 'Morocco', 'contact.wa': 'WhatsApp available 7 days/7', 'contact.hours': 'Mon–Sat: 9am – 8pm',
     'form.name': 'Your name', 'form.occasion': 'Occasion', 'form.msg': 'Describe your vision', 'form.send': 'Send via WhatsApp 🌸',
     'footer.copy': '© 2026 LanaFleur.com — All rights reserved',
+    'cart.title': 'Your Cart', 'cart.empty': 'Your cart is empty', 'cart.remove': 'Remove',
+    'cart.total': 'Total', 'cart.checkout': 'Checkout', 'cart.checkoutDesc': "Fill in your details and we'll send the order via WhatsApp.",
+    'cart.address': 'Delivery address', 'cart.phone': 'Phone number', 'cart.sendOrder': 'Send order',
+    'cart.back': 'Back', 'cart.newOrder': 'New order', 'cart.addToCart': 'Add to cart',
   },
   es: {
     'nav.services': 'Servicios', 'nav.collections': 'Colecciones', 'nav.occasions': 'Ocasiones',
@@ -140,13 +153,25 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
     'contact.addr': 'Marruecos', 'contact.wa': 'WhatsApp disponible 7d/7', 'contact.hours': 'Lun–Sáb: 9h00 – 20h00',
     'form.name': 'Tu nombre', 'form.occasion': 'Ocasión', 'form.msg': 'Describe tu visión', 'form.send': 'Enviar por WhatsApp 🌸',
     'footer.copy': '© 2026 LanaFleur.com — Todos los derechos reservados',
+    'cart.title': 'Tu carrito', 'cart.empty': 'Tu carrito está vacío', 'cart.remove': 'Eliminar',
+    'cart.total': 'Total', 'cart.checkout': 'Finalizar pedido', 'cart.checkoutDesc': 'Completa tus datos y enviaremos el pedido por WhatsApp.',
+    'cart.address': 'Dirección de entrega', 'cart.phone': 'Número de teléfono', 'cart.sendOrder': 'Enviar pedido',
+    'cart.back': 'Volver', 'cart.newOrder': 'Nuevo pedido', 'cart.addToCart': 'Añadir al carrito',
   },
 }
 
 const CATS = ['all', 'باقات', 'أعراس', 'هدايا', 'توصيل']
 const CAT_KEY: Record<string, string> = { all: 'cat.all', 'باقات': 'cat.baqat', 'أعراس': 'cat.aaras', 'هدايا': 'cat.hadaya', 'توصيل': 'cat.tawsil' }
 
-export default function HomePage() {
+export default function Page() {
+  return (
+    <CartProvider>
+      <HomePage />
+    </CartProvider>
+  )
+}
+
+function HomePage() {
   const [lang, setLang] = useState<Lang>('ar')
   const [mounted, setMounted] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
@@ -154,6 +179,7 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [form, setForm] = useState({ name: '', occasion: '', message: '' })
+  const { addToCart, cartCount, openCart } = useCart()
 
   const isAr = lang === 'ar'
   const t = (key: string) => TRANSLATIONS[lang][key] ?? TRANSLATIONS.fr[key] ?? key
@@ -214,7 +240,7 @@ export default function HomePage() {
         .lf-nav { position: sticky; top: 41px; z-index: 199; display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; background: var(--ivory); border-bottom: 1px solid ${scrolled ? 'var(--mink-l)' : 'transparent'}; }
         .lf-logo { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 300; font-style: italic; color: var(--charcoal); }
         .lf-logo span { color: var(--petal-d); }
-        .lf-navlinks { display: flex; gap: 36px; list-style: none; margin: 0; padding: 0; }
+        .lf-navlinks { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
         .lf-navlinks button { font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--mink); background: none; border: none; cursor: pointer; }
         .lf-navlinks button:hover { color: var(--charcoal); }
         .lf-cta { background: var(--charcoal); color: var(--white) !important; padding: 10px 24px; border-radius: 2px; font-size: 11px !important; letter-spacing: .14em; }
@@ -287,6 +313,8 @@ export default function HomePage() {
         .lf-footer-logo { font-family: 'Cormorant Garamond',serif; font-size: 20px; font-style: italic; color: rgba(255,255,255,.7); }
         .lf-footer-logo span { color: var(--petal); }
         .lf-wa-float { position: fixed; bottom: 24px; right: 24px; width: 54px; height: 54px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 6px 24px rgba(37,211,102,.35); z-index: 999; text-decoration: none; }
+        .lf-cart-btn { position: relative; background: none; border: none; font-size: 20px; cursor: pointer; }
+        .lf-cart-badge { position: absolute; top: -6px; right: -8px; background: var(--petal-d); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
         @media(max-width: 900px) {
           #services-grid { grid-template-columns: 1fr 1fr; }
           .products-grid { grid-template-columns: 1fr 1fr; }
@@ -304,7 +332,6 @@ export default function HomePage() {
       `}</style>
 
       <div className="lf" dir={isAr ? 'rtl' : 'ltr'}>
-        {/* LANG BAR */}
         <div className="lf-langbar">
           {(['fr', 'ar', 'en', 'es'] as Lang[]).map(l => (
             <button key={l} onClick={() => changeLang(l)} className={`lf-lang-btn ${lang === l ? 'active' : ''}`}>
@@ -313,7 +340,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* NAV */}
         <nav className="lf-nav">
           <span className="lf-logo">Lana<span>Fleur</span></span>
           <ul className="lf-navlinks">
@@ -322,23 +348,28 @@ export default function HomePage() {
             <li><button onClick={() => scrollTo('occasions')}>{t('nav.occasions')}</button></li>
             <li><button onClick={() => scrollTo('about')}>{t('nav.about')}</button></li>
             <li><button onClick={() => scrollTo('contact-sec')} className="lf-cta">{t('nav.order')}</button></li>
+            <li>
+              <button onClick={openCart} className="lf-cart-btn" aria-label="Cart">
+                🛍️
+                {cartCount > 0 && <span className="lf-cart-badge">{cartCount}</span>}
+              </button>
+            </li>
           </ul>
           <button className="lf-toggle" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
             <span></span><span></span><span></span>
           </button>
         </nav>
 
-        {/* MOBILE MENU */}
         <div className={`lf-mobilemenu ${mobileMenuOpen ? 'open' : ''}`}>
           <button onClick={() => scrollTo('services-sec')}>{t('nav.services')}</button>
           <button onClick={() => scrollTo('collections')}>{t('nav.collections')}</button>
           <button onClick={() => scrollTo('occasions')}>{t('nav.occasions')}</button>
           <button onClick={() => scrollTo('about')}>{t('nav.about')}</button>
           <button onClick={() => scrollTo('contact-sec')}>{t('nav.order')}</button>
+          <button onClick={() => { openCart(); setMobileMenuOpen(false) }}>🛍️ {cartCount > 0 ? `(${cartCount})` : ''}</button>
           <button onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 14, marginTop: 20, color: '#999' }}>✕</button>
         </div>
 
-        {/* HERO */}
         <section id="hero">
           <div className="hero-watermark" aria-hidden="true">L</div>
           <div className="hero-content">
@@ -357,7 +388,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* MARQUEE */}
         <div className="lf-marquee">
           <div className="lf-marquee-inner">
             {Array(2).fill(null).map((_, i) => (
@@ -371,7 +401,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* SERVICES */}
         <section id="services-sec" className="lf-sec">
           <div className="lf-container" style={{ textAlign: 'center', marginBottom: 40 }}>
             <p className="lf-label" style={{ marginBottom: 12 }}>{t('services.label')}</p>
@@ -390,7 +419,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* COLLECTIONS */}
         <section id="collections" className="lf-sec">
           <div className="lf-container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -415,14 +443,13 @@ export default function HomePage() {
                   </div>
                   <div className="product-name lf-heading">{p.name}</div>
                   <p className="product-price"><strong style={{ color: 'var(--charcoal)' }}>{p.price} DH</strong></p>
-                  <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`🌸 ${t('order.btn')}: ${p.name} (${p.price} DH)`)}`}
-                    target="_blank"
+                  <button
+                    onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, image_url: p.image_url })}
                     className="btn-secondary"
-                    style={{ display: 'inline-block', marginTop: 8 }}
+                    style={{ display: 'inline-block', marginTop: 8, cursor: 'pointer' }}
                   >
-                    {t('order.btn')} →
-                  </a>
+                    {t('cart.addToCart')} +
+                  </button>
                 </div>
               ))}
               {filtered.length === 0 && <p style={{ color: 'var(--mink)', gridColumn: '1/-1', textAlign: 'center' }}>...</p>}
@@ -430,7 +457,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ABOUT */}
         <section id="about">
           <div className="about-img">🌺</div>
           <div className="about-content">
@@ -445,7 +471,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* OCCASIONS */}
         <section id="occasions" className="lf-sec">
           <div className="lf-container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -466,7 +491,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
         <section id="testimonials" className="lf-sec">
           <div className="lf-container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -489,7 +513,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CONTACT */}
         <section id="contact-sec" className="lf-sec">
           <div className="lf-container contact-grid">
             <div>
@@ -509,15 +532,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FOOTER */}
         <footer className="lf-footer">
           <div className="lf-footer-logo">Lana<span>Fleur</span></div>
           <div className="lf-footer-logo" style={{ fontSize: 11, opacity: .7 }}>{t('footer.copy')}</div>
         </footer>
 
-        {/* WHATSAPP FLOAT */}
+        <CartDrawer isAr={isAr} whatsappNumber={WHATSAPP_NUMBER} t={t} />
+
         <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" className="lf-wa-float">💬</a>
       </div>
     </div>
   )
 }
+EOF
+
+echo "✅ app/page.tsx تبدل بالكامل"
